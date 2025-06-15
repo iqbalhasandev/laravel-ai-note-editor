@@ -20,7 +20,7 @@ class Note extends Model
         'title',
         'content',
         'tags',
-        'summary'
+        'summary',
     ];
 
     /**
@@ -32,11 +32,8 @@ class Note extends Model
         'tags' => 'array',
     ];
 
-
     /**
      * Get the user that owns the note.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use OpenAI\Laravel\Facades\OpenAI;
 use Illuminate\Support\Facades\Log;
+use OpenAI\Laravel\Facades\OpenAI;
 
 class OpenAIService
 {
@@ -22,7 +22,7 @@ class OpenAIService
             $stream = OpenAI::chat()->createStreamed([
                 'model' => $this->model,
                 'messages' => [
-                    ['role' => 'user', 'content' => $prompt]
+                    ['role' => 'user', 'content' => $prompt],
                 ],
                 'max_tokens' => 1000,
             ]);
@@ -33,8 +33,8 @@ class OpenAIService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('OpenAI API error: ' . $e->getMessage());
-            $callback("\nError: " . $e->getMessage() . "\n");
+            Log::error('OpenAI API error: '.$e->getMessage());
+            $callback("\nError: ".$e->getMessage()."\n");
         }
     }
 
@@ -42,13 +42,13 @@ class OpenAIService
     {
         switch ($action) {
             case 'summarize':
-                return "Please provide a concise summary of the following text:\n\n" . $content;
+                return "Please provide a concise summary of the following text:\n\n".$content;
             case 'improve':
-                return "Please improve the writing quality, grammar, and clarity of the following text:\n\n" . $content;
+                return "Please improve the writing quality, grammar, and clarity of the following text:\n\n".$content;
             case 'generate_tags':
-                return "Generate 5-8 relevant tags for the following content. Return only the tags as a comma-separated list:\n\n" . $content;
+                return "Generate 5-8 relevant tags for the following content. Return only the tags as a comma-separated list:\n\n".$content;
             case 'insights':
-                return "Analyze the following text and provide insights about its key themes, tone, structure, and any notable patterns or issues. Format your response in a well-organized manner:\n\n" . $content;
+                return "Analyze the following text and provide insights about its key themes, tone, structure, and any notable patterns or issues. Format your response in a well-organized manner:\n\n".$content;
             default:
                 return $content;
         }

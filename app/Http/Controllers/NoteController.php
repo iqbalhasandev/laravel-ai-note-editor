@@ -4,22 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Note;
 use App\Services\OpenAIService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Inertia\Response as InertiaResponse;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NoteController extends Controller
 {
     use AuthorizesRequests;
+
     /**
      * Display a listing of the notes.
-     *
-     * @return \Inertia\Response
      */
     public function index(): InertiaResponse
     {
@@ -28,29 +26,24 @@ class NoteController extends Controller
             ->get(['id', 'title', 'content', 'tags', 'updated_at']);
 
         return Inertia::render('Notes/Index', [
-            'notes' => $notes
+            'notes' => $notes,
         ]);
     }
 
     /**
      * Show the form for creating a new note.
-     *
-     * @return \Inertia\Response
      */
     public function show(Note $note): InertiaResponse
     {
         $this->authorize('view', $note);
 
         return Inertia::render('Notes/Note', [
-            'note' => $note
+            'note' => $note,
         ]);
     }
 
     /**
      * Store a newly created note in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request): RedirectResponse
     {
@@ -74,8 +67,6 @@ class NoteController extends Controller
     /**
      * Update the specified note in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Note  $note
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, Note $note)
@@ -93,7 +84,7 @@ class NoteController extends Controller
             'title',
             'content',
             'tags',
-            'summary'
+            'summary',
         ]));
 
         // For API requests, return JSON
@@ -107,9 +98,6 @@ class NoteController extends Controller
 
     /**
      * Remove the specified note from storage.
-     *
-     * @param  \App\Models\Note  $note
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Note $note): RedirectResponse
     {
@@ -126,9 +114,9 @@ class NoteController extends Controller
         $this->authorize('update', $note);
 
         $request->validate([
-            'action' => 'required|in:summarize,improve,generate_tags,insights'
+            'action' => 'required|in:summarize,improve,generate_tags,insights',
         ]);
-        $openAIService = new OpenAIService();
+        $openAIService = new OpenAIService;
 
         // Determine typing speed settings based on the action or query parameters
         $typingSpeed = $request->input('typingSpeed', 'medium'); // default to medium
@@ -150,10 +138,10 @@ class NoteController extends Controller
                 $note->content,
                 $request->action,
                 function ($chunk) use ($typingDelayMs) {
-                    echo "data: " . json_encode([
+                    echo 'data: '.json_encode([
                         'chunk' => $chunk,
                         'typingDelayMs' => $typingDelayMs,
-                    ]) . "\n\n";
+                    ])."\n\n";
                     flush();
                 }
             );
@@ -176,7 +164,7 @@ class NoteController extends Controller
 
         $request->validate([
             'type' => 'required|in:summary,tags,content',
-            'data' => 'required'
+            'data' => 'required',
         ]);
 
         switch ($request->type) {
