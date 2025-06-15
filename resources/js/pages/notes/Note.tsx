@@ -393,7 +393,7 @@ export default function Note({ note, breadcrumbs }: NoteEditorProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={form.data.title || 'Untitled Note'} />
 
-            <div className="mx-auto mt-4 max-w-4xl" onKeyDown={handleKeyDown}>
+            <div className="mx-auto mt-4 w-4xl" onKeyDown={handleKeyDown}>
                 <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
                     {/* Header */}
                     <div className="flex items-center justify-between border-b p-4">

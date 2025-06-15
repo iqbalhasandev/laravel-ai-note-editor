@@ -86,7 +86,7 @@ class NoteController extends Controller
             'title' => 'sometimes|string|max:255',
             'content' => 'sometimes|string',
             'tags' => 'sometimes|array',
-            'summary' => 'sometimes|string',
+            'summary' => 'sometimes|nullable|string',
         ]);
 
         $note->update($request->only([
