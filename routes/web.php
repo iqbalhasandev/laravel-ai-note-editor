@@ -16,7 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Explicitly define note show route with name
     Route::get('notes/{note}', [NoteController::class, 'show'])->name('notes.show');
     // AI Enhancement routes
-    Route::get('/notes/{note}/enhance/', [NoteController::class, 'enhance'])
+    Route::post('/notes/{note}/enhance/', [NoteController::class, 'enhance'])
         ->name('notes.enhance');
     Route::post('/notes/{note}/save-enhancement', [NoteController::class, 'saveEnhancement'])
         ->name('notes.saveEnhancement');

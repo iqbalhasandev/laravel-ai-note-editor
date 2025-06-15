@@ -232,72 +232,86 @@ export default function Note({ note, breadcrumbs }: NoteEditorProps) {
         let accumulatedContent = '';
 
         try {
-            const eventSource = new EventSource(
+            await axios.post(
                 route('notes.enhance', {
                     note: note.id,
+                }),
+                {
                     action: action,
                     typingSpeed: aiTypingSpeed === 70 ? 'slow' : aiTypingSpeed === 10 ? 'fast' : 'medium',
-                }),
+                    content: form.data.content, // Send content in the request body
+                },
+                {
+                    onDownloadProgress: (progressEvent) => {
+                        const responseText = progressEvent.event.target.responseText;
+
+                        try {
+                            // Handle streaming response
+                            const lines = responseText.split('\n\n');
+                            let latestContent = '';
+
+                            for (const line of lines) {
+                                if (line && line.startsWith('data: ')) {
+                                    try {
+                                        const data = JSON.parse(line.substring(6));
+                                        if (data.chunk) {
+                                            latestContent += data.chunk;
+
+                                            if (data.typingDelayMs) {
+                                                setAiTypingSpeed(data.typingDelayMs);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.debug('Error parsing chunk:', e);
+                                    }
+                                }
+                            }
+
+                            if (latestContent) {
+                                accumulatedContent = latestContent;
+
+                                setAiCompleteContent((prevContent) => {
+                                    if (prevContent.length - aiTypingIndex > 50) {
+                                        setAiTypingIndex(prevContent.length - 30);
+                                    }
+                                    return accumulatedContent;
+                                });
+                            }
+                        } catch (e) {
+                            console.debug('Error processing response:', e);
+                        }
+                    },
+                },
             );
 
-            eventSource.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.chunk) {
-                        const chunk = data.chunk;
-                        accumulatedContent += chunk;
+            // Handle successful completion
+            setAiResult(accumulatedContent);
+            setAiIsLoading(false);
 
-                        setAiCompleteContent((prevContent) => {
-                            if (prevContent.length - aiTypingIndex > 50) {
-                                setAiTypingIndex(prevContent.length - 30);
-                            }
-                            return accumulatedContent;
-                        });
-
-                        if (data.typingDelayMs) {
-                            setAiTypingSpeed(data.typingDelayMs);
-                        }
-                    }
-                } catch {
-                    console.debug('Error parsing event data:', event.data);
-                }
-            };
-
-            eventSource.onerror = () => {
-                console.error('EventSource failed');
-                eventSource.close();
-                setAiIsLoading(false);
+            if (accumulatedContent.length > 1000) {
                 setAiTypingIndex(accumulatedContent.length);
                 setAiStreamedContent(accumulatedContent);
-            };
-
-            eventSource.addEventListener('close', () => {
-                eventSource.close();
-                setAiResult(accumulatedContent);
-                setAiIsLoading(false);
-
-                if (accumulatedContent.length > 1000) {
-                    setAiTypingIndex(accumulatedContent.length);
-                    setAiStreamedContent(accumulatedContent);
-                } else {
-                    setAiTypingSpeed(5);
-                }
-            });
-
-            setTimeout(() => {
-                if (eventSource.readyState !== EventSource.CLOSED) {
-                    eventSource.close();
-                    setAiResult(accumulatedContent || 'Enhancement timed out. Please try again.');
-                    setAiIsLoading(false);
-                    setAiTypingIndex(accumulatedContent.length);
-                    setAiStreamedContent(accumulatedContent);
-                }
-            }, 60000);
+            } else {
+                setAiTypingSpeed(5);
+            }
         } catch (error: unknown) {
             console.error('Enhancement failed:', error);
             setAiResult('Failed to enhance content. Please try again.');
             setAiIsLoading(false);
+            setAiTypingIndex(0);
+            setAiStreamedContent('');
         }
+
+        // Set a timeout for the request
+        setTimeout(() => {
+            // If still loading after 60 seconds, consider it timed out
+            if (aiIsLoading) {
+                setAiResult(accumulatedContent || 'Enhancement timed out. Please try again.');
+                setAiIsLoading(false);
+                setAiTypingIndex(accumulatedContent.length);
+                setAiStreamedContent(accumulatedContent);
+            }
+        }, 60000);
     };
 
     // Save AI enhancement
